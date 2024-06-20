@@ -82,6 +82,14 @@ public class SolarReorder : MonoBehaviour {
             };
         }
         for (int i = 0; i < ColoredButtons.Length; i++) ColoredButtons[i].SetActive(false);
+        try
+        {
+            colorblindEnabled = colorblindMode.ColorblindModeActive;
+        }
+        catch
+        {
+            colorblindEnabled = false;
+        }
     }
     void Start ()
     {
