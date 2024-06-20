@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using rnd = UnityEngine.Random;
 using KModkit;
+using System.Text.RegularExpressions;
 
 public class SolarReorder : MonoBehaviour {
 
@@ -665,4 +666,80 @@ public class SolarReorder : MonoBehaviour {
         if (buttonsplaying) timespent += Time.deltaTime; //Helps to ensure button flashes stay in sync with the music even if framerates are stupid
         else timespent = 0f;
 	}
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        if (!Initialized || !ButtonSeq.Take(ButtonsPressed).SequenceEqual(EndNumbers.Take(ButtonsPressed)))
+        {
+            Lights.PickRandom().OnInteract();
+            while (Activated)
+                yield return true;
+        }
+        var orderDeterminedToPress = edgeworkcheck.Any(bomb.GetSerialNumber().Contains) ? EndNumbers : OrderedNumbers.OrderBy(a => EndNumbers[a - 1]).ToArray();
+        for (var x = ButtonsPressed; x < 16; x++)
+        {
+            Buttons[orderDeterminedToPress[x] - 1].OnInteract();
+            yield return new WaitForSeconds(0.1f);
+        }
+        while (Activated)
+            yield return true;
+    }
+#pragma warning disable IDE0051 // Remove unused private members
+    readonly string TwitchHelpMessage = "\"!{0} go/activate/start\" [Plays the sequence.] | \"!{0} press 1 5 10 16 2\" or \"!{0} submit 1 5 10 16 2\" [Presses the 1st, 5th, 10th, 16th, and 2nd buttons in reading order.]";
+#pragma warning restore IDE0051 // Remove unused private members
+
+    IEnumerator ProcessTwitchCommand(string cmd)
+    {
+        var rgxStart = Regex.Match(cmd, @"^(go|activate|start)$");
+        var rgxPress = Regex.Match(cmd, @"^(press|submit)(\s\d{1,2})+$");
+        if (rgxStart.Success)
+        {
+            if (Activated)
+            {
+                yield return "sendtochaterror Can't interact right now! Wait until the sequence has finished playing.";
+                yield break;
+            }
+            yield return null;
+            Lights.PickRandom().OnInteract();
+        }
+        else if (rgxPress.Success)
+        {
+            if (Activated)
+            {
+                yield return "sendtochaterror Can't interact right now! Wait until the sequence has finished playing.";
+                yield break;
+            }
+            if (!Initialized)
+            {
+                yield return "sendtochaterror Can't press any buttons right now! Did you forget to play a sequence?";
+                yield break;
+            }
+            var splitCoordsAll = rgxPress.Value.Trim().Split().Skip(1);
+            var btnsToPress = new List<KMSelectable>();
+            foreach (var coord in splitCoordsAll)
+            {
+                int idx;
+                if (!int.TryParse(coord, out idx) || idx < 1 || idx > 16)
+                    yield break;
+                btnsToPress.Add(Buttons[idx - 1]);
+            }
+            yield return null;
+            for (int i = 0; i < btnsToPress.Count; i++)
+            {
+                KMSelectable btn = btnsToPress[i];
+                btn.OnInteract();
+                yield return new WaitForSeconds(0.1f);
+                if (Activated)
+                {
+                    yield return "solve";
+                    yield return "strike";
+                    if (i + 1 < btnsToPress.Count)
+                        yield return "sendtochat Button presses have been interuptted after " + (i + 1).ToString() + " press(es)!";
+                    yield break;
+                }
+            }
+        }
+        yield break;
+    }
+
 }
