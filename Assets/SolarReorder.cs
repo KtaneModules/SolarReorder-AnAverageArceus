@@ -5,12 +5,14 @@ using System.Linq;
 using UnityEngine;
 using rnd = UnityEngine.Random;
 using KModkit;
+using System.Text.RegularExpressions;
 
 public class SolarReorder : MonoBehaviour {
 
     public KMAudio audio;
     public KMBombInfo bomb;
     public KMBombModule module;
+    public KMColorblindMode colorblindMode;
 
     public Material[] Colors;
 
@@ -18,19 +20,22 @@ public class SolarReorder : MonoBehaviour {
     public GameObject[] LightColors;
     public KMSelectable[] Buttons;
     public TextMesh[] ButtonNumbers;
-    public TextMesh[] SubmissionNumbers;
+    public TextMesh[] SubmissionNumbers, CBText;
     public GameObject[] Texts;
     public GameObject[] ColoredButtons;
 
     string[] colornames = { "black", "blue", "cyan", "green", "magenta", "red", "white", "yellow" };
+    string[] colornamesAbbrev = { "K", "B", "C", "G", "M", "R", "W", "Y" };
     string[] edgeworkcheck = { "K", "F", "R", "A", "D", "Y" };
 
     bool Initialized;
     bool Activated;
+    bool colorblindEnabled;
     int ViewCount;
 
     int[] SolarColors = new int[8];
     int[] OrderedNumbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    int[] IdxWhiteTxt = { 2, 6, 7 };
     List<int> RefNums = new List<int>();
     int[] StartNumbers = new int[16];
     string[] StartToText = new string[16];
@@ -77,6 +82,14 @@ public class SolarReorder : MonoBehaviour {
             };
         }
         for (int i = 0; i < ColoredButtons.Length; i++) ColoredButtons[i].SetActive(false);
+        try
+        {
+            colorblindEnabled = colorblindMode.ColorblindModeActive;
+        }
+        catch
+        {
+            colorblindEnabled = false;
+        }
     }
     void Start ()
     {
@@ -148,7 +161,7 @@ public class SolarReorder : MonoBehaviour {
         buttonsplaying = true;
         yield return new WaitWhile(() => timespent < 0.1f);
         timespent -= 0.1f;
-        for (int i=0; i<8; i++)
+        for (int i = 0; i < 8; i++)
         {
             ColoredButtons[i].SetActive(true);
             yield return new WaitWhile(() => timespent < 0.4818f);
@@ -483,28 +496,44 @@ public class SolarReorder : MonoBehaviour {
         for (int i = 0; i < 16; i++) { ButtonNumbers[i].text = StartToText[i]; Texts[i].SetActive(false); }
         Debug.LogFormat("[Solar Reorder #{0}] The number sequence this time around is {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14} {15} {16}.", moduleId, StartNumbers[0], StartNumbers[1], StartNumbers[2], StartNumbers[3], StartNumbers[4], StartNumbers[5], StartNumbers[6], StartNumbers[7], StartNumbers[8], StartNumbers[9], StartNumbers[10], StartNumbers[11], StartNumbers[12], StartNumbers[13], StartNumbers[14], StartNumbers[15]);
         LightColors[0].GetComponent<Renderer>().material = Colors[SolarColors[0]]; //Color activation
+        CBText[0].text = colorblindEnabled ? colornamesAbbrev[SolarColors[0]] : "";
+        CBText[0].color = IdxWhiteTxt.Contains(SolarColors[0]) ? Color.black : Color.white;
         buttonsplaying = true;
         yield return new WaitWhile(() => timespent < 0.271f);
         timespent -= 0.271f;
         LightColors[1].GetComponent<Renderer>().material = Colors[SolarColors[1]];
+        CBText[1].text = colorblindEnabled ? colornamesAbbrev[SolarColors[1]] : "";
+        CBText[1].color = IdxWhiteTxt.Contains(SolarColors[1]) ? Color.black : Color.white;
         yield return new WaitWhile(() => timespent < 0.271f);
         timespent -= 0.271f;
         LightColors[2].GetComponent<Renderer>().material = Colors[SolarColors[2]];
+        CBText[2].text = colorblindEnabled ? colornamesAbbrev[SolarColors[2]] : "";
+        CBText[2].color = IdxWhiteTxt.Contains(SolarColors[2]) ? Color.black : Color.white;
         yield return new WaitWhile(() => timespent < 0.271f);
         timespent -= 0.271f;
         LightColors[3].GetComponent<Renderer>().material = Colors[SolarColors[3]];
+        CBText[3].text = colorblindEnabled ? colornamesAbbrev[SolarColors[3]] : "";
+        CBText[3].color = IdxWhiteTxt.Contains(SolarColors[3]) ? Color.black : Color.white;
         yield return new WaitWhile(() => timespent < 0.1805f);
         timespent -= 0.1805f;
         LightColors[4].GetComponent<Renderer>().material = Colors[SolarColors[4]];
+        CBText[4].text = colorblindEnabled ? colornamesAbbrev[SolarColors[4]] : "";
+        CBText[4].color = IdxWhiteTxt.Contains(SolarColors[4]) ? Color.black : Color.white;
         yield return new WaitWhile(() => timespent < 0.03f);
         timespent -= 0.03f;
         LightColors[5].GetComponent<Renderer>().material = Colors[SolarColors[5]];
+        CBText[5].text = colorblindEnabled ? colornamesAbbrev[SolarColors[5]] : "";
+        CBText[5].color = IdxWhiteTxt.Contains(SolarColors[5]) ? Color.black : Color.white;
         yield return new WaitWhile(() => timespent < 0.03f);
         timespent -= 0.03f;
         LightColors[6].GetComponent<Renderer>().material = Colors[SolarColors[6]];
+        CBText[6].text = colorblindEnabled ? colornamesAbbrev[SolarColors[6]] : "";
+        CBText[6].color = IdxWhiteTxt.Contains(SolarColors[6]) ? Color.black : Color.white;
         yield return new WaitWhile(() => timespent < 0.03f);
         timespent -= 0.03f;
         LightColors[7].GetComponent<Renderer>().material = Colors[SolarColors[7]];
+        CBText[7].text = colorblindEnabled ? colornamesAbbrev[SolarColors[7]] : "";
+        CBText[7].color = IdxWhiteTxt.Contains(SolarColors[7]) ? Color.black : Color.white;
         buttonsplaying = false;
         yield return new WaitForSeconds(0.56f);
         while (step < 8) ColorHandler(SolarColors[step]);
@@ -545,6 +574,7 @@ public class SolarReorder : MonoBehaviour {
             if (lightshutoff >= 14.375)
             {
                 LightColors[lightsoff].GetComponent<Renderer>().material = Colors[0];
+                CBText[lightsoff].text = "";
                 lightsoff++;
                 lightshutoff -= 14.375f;
             }
@@ -665,4 +695,92 @@ public class SolarReorder : MonoBehaviour {
         if (buttonsplaying) timespent += Time.deltaTime; //Helps to ensure button flashes stay in sync with the music even if framerates are stupid
         else timespent = 0f;
 	}
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        if (!Initialized || !ButtonSeq.Take(ButtonsPressed).SequenceEqual(EndNumbers.Take(ButtonsPressed)))
+        {
+            Lights.PickRandom().OnInteract();
+            while (Activated)
+                yield return true;
+        }
+        var orderDeterminedToPress = edgeworkcheck.Any(bomb.GetSerialNumber().Contains) ? EndNumbers : OrderedNumbers.OrderBy(a => EndNumbers[a - 1]).ToArray();
+        for (var x = ButtonsPressed; x < 16; x++)
+        {
+            Buttons[orderDeterminedToPress[x] - 1].OnInteract();
+            yield return new WaitForSeconds(0.1f);
+        }
+        while (Activated)
+            yield return true;
+    }
+#pragma warning disable IDE0051 // Remove unused private members
+    readonly string TwitchHelpMessage = "\"!{0} go/activate/start/play\" [Plays the sequence.] | \"!{0} press 1 5 10 16 2\" or \"!{0} submit 1 5 10 16 2\" [Presses the 1st, 5th, 10th, 16th, and 2nd buttons in reading order.] | \"!{0} cb/colorblind/colourblind\" [Toggles colorblind mode.]";
+#pragma warning restore IDE0051 // Remove unused private members
+
+    IEnumerator ProcessTwitchCommand(string cmd)
+    {
+        var rgxStart = Regex.Match(cmd, @"^(go|activate|start|play)$");
+        var rgxPress = Regex.Match(cmd, @"^(press|submit)(\s\d{1,2})+$");
+        var rgxColorblind = Regex.Match(cmd, @"^c(olou?r)?b(lind)?$");
+        if (rgxColorblind.Success)
+        {
+            if (Activated)
+            {
+                yield return "sendtochaterror Colorblind cannot be toggled while the sequence is playing! Wait until the sequence has finished playing.";
+                yield break;
+            }
+            yield return null;
+            colorblindEnabled ^= true;
+            yield return "sendtochat Colorblind mode is now toggled. Use \"!{1} go/activate/start/play\" to confirm.";
+        }
+        else if (rgxStart.Success)
+        {
+            if (Activated)
+            {
+                yield return "sendtochaterror Can't interact right now! Wait until the sequence has finished playing.";
+                yield break;
+            }
+            yield return null;
+            Lights.PickRandom().OnInteract();
+        }
+        else if (rgxPress.Success)
+        {
+            if (Activated)
+            {
+                yield return "sendtochaterror Can't interact right now! Wait until the sequence has finished playing.";
+                yield break;
+            }
+            if (!Initialized)
+            {
+                yield return "sendtochaterror Can't press any buttons right now! Did you forget to play a sequence?";
+                yield break;
+            }
+            var splitCoordsAll = rgxPress.Value.Trim().Split().Skip(1);
+            var btnsToPress = new List<KMSelectable>();
+            foreach (var coord in splitCoordsAll)
+            {
+                int idx;
+                if (!int.TryParse(coord, out idx) || idx < 1 || idx > 16)
+                    yield break;
+                btnsToPress.Add(Buttons[idx - 1]);
+            }
+            yield return null;
+            for (int i = 0; i < btnsToPress.Count; i++)
+            {
+                KMSelectable btn = btnsToPress[i];
+                btn.OnInteract();
+                yield return new WaitForSeconds(0.1f);
+                if (Activated)
+                {
+                    yield return "solve";
+                    yield return "strike";
+                    if (i + 1 < btnsToPress.Count)
+                        yield return "sendtochat Button presses have been interuptted after " + (i + 1).ToString() + " press(es)!";
+                    yield break;
+                }
+            }
+        }
+        yield break;
+    }
+
 }
